@@ -14,6 +14,8 @@ var express = require('express')
   , executor = require('./lib/executor')
   , beforeEach = require('express-group-handlers').beforeEach
   , NedbStore = require('connect-nedb-session')(express)
+  , fs = require('fs')
+  , https = require('https')
   ;
 
 
@@ -105,8 +107,11 @@ expressServer.launchServer = function (cb) {
     , self = this
     ;
 
-  self.apiServer = http.createServer(self);   // Let's not call it 'server' we never know if Express will want to use this variable!
-
+  self.apiServer = https.createServer({
+    key: fs.readFileSync('config/ci.pem'),
+    cert: fs.readFileSync('config/ci.crt')
+  }, self);
+  
   // Handle any connection error gracefully
   self.apiServer.on('error', function () {
     return callback("An error occured while launching the server, probably a server is already running on the same port!");
