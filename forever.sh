@@ -7,4 +7,4 @@ set -e
 FOREVER=./node_modules/forever/bin/forever
 $FOREVER stopall || true
 
-$FOREVER start -l forever.log -o out.log -e err.log braindead.js
+$FOREVER start -a -l forever.log -o out.log -e err.log braindead.js
