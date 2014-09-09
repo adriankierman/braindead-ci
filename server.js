@@ -111,7 +111,7 @@ expressServer.launchServer = function (cb) {
     key: fs.readFileSync('config/ci.pem'),
     cert: fs.readFileSync('config/ci.crt')
   }, self);
-  
+
   // Handle any connection error gracefully
   self.apiServer.on('error', function () {
     return callback("An error occured while launching the server, probably a server is already running on the same port!");
