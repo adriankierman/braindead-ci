@@ -10,12 +10,12 @@ var Project = require('../lib/project')
   , _ = require('underscore')
   ;
 
-
 module.exports = function (req, res, next) {
   db.settings.findOne({ type: 'generalSettings' }, function (err, settings) {
-    if (req.query.token === undefined || req.query.token.length === 0 || req.query.token !== settings.githubToken) { return res.send(200); }
+    if (req.query.token === undefined || req.query.token.length === 0 ||
+      req.query.token !== settings.githubToken) { return res.send(200); }
     console.log(req.body);
-    db.jobs.find({}, function (err, jobs) {
+    db.projects.find({}, function (err, projects) {
       var payload = req.body
         , receivedGithubRepoUrl = payload.repository.url
         , receivedBranch = payload.ref.replace(/^.*\//,'')
@@ -23,23 +23,30 @@ module.exports = function (req, res, next) {
 
       console.log('repo '+ receivedGithubRepoUrl);
       console.log('branch '+ receivedBranch);
-      // Build all the enabled jobs corresponding using the repo and branch of this push
-      jobs.forEach(function (job) {
-        console.log('job repo '+ job.githubRepoUrl);
-        console.log('job branch '+ job.branch);
+      // Build all the enabled projects corresponding using the repo and branch of
+      // this push
+      projects.forEach(function (project) {
+        console.log('project repo '+ project.githubRepoUrl);
+        console.log('project branch '+ project.branch);
+        console.log('checking...');
 
-        if (job.githubRepoUrl === receivedGithubRepoUrl && job.branch === receivedBranch) {
-          if (job.enabled) {
-            executor.registerBuild(job.name);
+        if (project.githubRepoUrl == receivedGithubRepoUrl && project.branch ==
+          receivedBranch) {
+          console.log('Detected that we should build the project ' +receivedGithubRepoUrl);
+          if (project.enabled) {
+            console.log('registering build ' + project.name);
+            executor.registerBuild(project.name);
           } else {
-            Job.getJob(job.name, function (err, job) {
-              if (err || !job) { return; }
-              job.advertiseBuildResult(null);
+            Project.getProject(project.name, function (err, project) {
+              if (err || !project) {
+                console.log('Error retrieving the project: ' + err);
+                return; }
+              console.log('Advertising the build now.');
+              project.advertiseBuildResult(null);
             });
           }
         }
       });
-
       return res.send(200);   // Always return a success
     });
   });
