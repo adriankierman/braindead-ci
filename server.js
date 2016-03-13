@@ -28,6 +28,13 @@ h4e.setup({ app: expressServer
           });
 
 // Middlewares
+expressServer.use(function(req, res, next){
+  if (req.url === '/health') {
+    res.json({ok:true});
+  } else {
+    return next();
+  }
+});
 expressServer.use(middlewares.serveFavicon);
 expressServer.use(express.bodyParser());
 expressServer.use(express.cookieParser());
@@ -35,13 +42,12 @@ expressServer.use(express.session({ secret: 'thats some secret'
                                   , key: 'craniumsess'
                                   , cookie: { path: '/'
                                             , httpOnly: true
-                                            , maxAge: 365 * 24 * 3600 * 1000   // One year
+                                            , maxAge: 1 * 24 * 3600 * 1000   // One day
                                             }
                                   , store: new NedbStore({ filename: 'workspace/_data/session.db' })
                                   }));
 expressServer.use(middlewares.populateLoggedInUser);
 expressServer.use(expressServer.router);
-
 
 // Serving static files from paths that can't be confused with the webpages
 expressServer.get('/assets/css/:file', express.static(__dirname));
